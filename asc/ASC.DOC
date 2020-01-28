@@ -1,0 +1,79 @@
+
+//
+//	Advanced SOUP compiler ver.A / object code reference
+//
+
+・OBJECTヘッダ構造
+
+	$0000～$0003	"Aspo" ID code $41,$73,$70,$6F
+	$0004		Program object start offset （通常は0）
+	$0006		String data start offset （Program objからのoffset）
+	$0008		変数area size （0～4095vals） 2byte/valになる。
+	$000a		local変数area size
+
+	$0020～		Program obj start
+
+
+・中間言語コード
+
+	$80		End of line
+	$8F		End of program
+
+	$90 ～ $EF	英記号 $20-$7f code ( +$70 )
+			または1byte command code
+	$81 ～ $8E	未使用
+
+	[H],[L]		$0000-$7FFF 整数値
+	$FF,[L],[H]	$0000-$FFFF（-32767～+32768）の整数値
+
+	$F3,[L],[H]	static変数 get
+	$F6,[L],[H]	local変数 get
+
+	$FD,[L],[H]	string data ptr (ストリング指定)
+
+	$F4,[L],[H]	PC ptr(NUM) (compilerで使用)
+	$F5,[L],[H]	program label ptr (ラベル指定)
+
+	$FC,[L],[H]	条件分岐code （L,Hはスキップ先のprogram ptr）
+
+	$F1,[?]		Reserved word 1
+	$F2,[?]		Reserved word 2
+
+
+・COMMAND code
+
+	;	\label	(same as)=> gosub label
+	;	*label	pointer name (*0,*1=local label)
+	;	goto num  (local label)=> reference forward object
+	;			goto *0 ( backward reference )
+	;			goto *1 ( forward reference )
+
+・special string sequence
+
+	;
+	;	print "AABB" : "CCDD"+
+	;		==> print "AABBCCDD"
+	;
+
+・var pointer define
+
+	;	define	AAA 123
+	;		==> ptr of AAA=128
+
+・reserved word ( for NWW )
+
+	c0 data ...			/ data storage
+	c1 print "message"		/ put message (text)
+	c2 openw x,y,lx,ly		/ message window open
+	c3 messw "message"		/ message put to window
+	c4 closew			/ message window close
+	c5 aska "file.ext"		/ load picture file ( ASK,PIX )
+	c6 scinit			/ screen clear & init
+	c7 scwait			/ 
+	c8 scron			/ palette fade in
+	c9 scroff			/ palette fade out
+	ca scfix			/ owb BG fix
+	d0 icon x,y,no#			/ put icon on screen
+
+
+

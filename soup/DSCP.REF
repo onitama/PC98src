@@ -1,0 +1,64 @@
+
+	//	chkdat val,"str"
+	//	if prm ( if prm is true,execute current line )
+	//	goto *label
+	//	gosub *label
+	//	return
+	//	repeat
+	//	loop
+	//	print "str"
+	//	cls spec(1),color(0)
+	//	screen lines(*),page(*),switch(*)  *=1,0,1(default)
+	//	locate x(0),y(0)
+	//	keywait
+	//	color col(15),style(1),mode(0),exmode(0)
+			style=1/bold 2/slant 4/super slant
+			mode =1/center 2/right 3/font mode
+			exmode=1/shadow 2/futidori 3/blow up
+	//	gprt x,y,"str"
+	//	mag "file",x(0),y(0)
+	//	palette p_no(*),code(*),chgsw(0)
+	//	contrast grade(16),fadetime(0)
+	//	palwait
+	//	pause times(100)
+	//	aska "file",x(0),y(0)
+	//	page a_page,d_page
+	//	scroll dir(0),len(400),step(1)
+	//	qp "file",x(192),y(116)
+	//	anime start(1),end(def),times(3),adpls(0)
+	//	magcel "file",segofs(0),mode(0)
+	//	wdraw segofs(0),zoom(256),angle(32)
+	//	width dotsize(1),linesize(1),xdot(256/128),ydot(168/84),xaxis(64),yaxis(0)
+	//		0=1,1=2,2=4 dot
+	//	wmove times(0),speed(3)
+	//	wmove check chkunit(no chk),prm#(all),speed(3)
+	//	wset unit(*),func(*),xx($80),yy($80),
+	//	     srcbuf(0),zmx(256),zmy(256),ang(32),sx(64),sy(64)
+	//	wact unit(*),prm#(*),flag(-1),add prm(1),
+	//	     and prm(0),bounce value(0),add2 prm(0)
+	//	wprm sqtno(*),word offset(*),value(0)
+	//	wenv unit(*),prm#(*),target value(*),times(20),envno(3)
+	//	wgo unit(*),xx(*),yy(*),times(20),envno(3),turnsw(0)
+	//	speed v-blank time(3)
+	//	wget srcbuf(0),xsize(256),ysize(256),startx(0),starty(0)
+	//	escape flag(1)		0=no [esc]/1=pause [esc]/2=all time [esc]
+	//	pcopy srcpage(0),size_x(640),size_y(400)
+	//	gcopy srcpage(0),x1(0),y1(0),x2(639),y2(199),dstpage(0),tx(0),ty(200)
+	//	mplay musofs(0)
+	//	mstop speed(0)
+	//	music "file",musofs(0)
+	//	mcopy wrtpage(0),fadetype(0),sel color(0)
+			fadetype=0/fast 1-4095/fade
+			sel color=0-15/on color 16-/all color
+	//	mask sel color(0)
+	//	get xx(0),yy(0),sx(640),sy(100),srcbuf(0)
+	//	put xx(0),yy(0),sx(640),sy(100),srcbuf(0)
+	//	mput xx(0),yy(0),sx(640),sy(100),srcbuf(0)
+	//	lget xx(0),yy(0),sx(640),sy(400),srcbuf(0),plane(15)
+	//	lput xx(0),yy(0),sx(640),sy(400),srcbuf(0),plane(15)
+	//	inkey minnum,maxnum  ( keyvalue returns to pval[0] )
+	//	mono
+	//	rgb "file"
+	//	run "filename"
+	//	exec "filename"
+

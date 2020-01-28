@@ -1,0 +1,229 @@
+	;
+	;	LSP sample program
+	;		onitama 1994/7
+	;
+	escape 1
+	screen 1,0,1
+	contrast 0
+	music "musamp1"
+	music "musamp2",2000
+*1
+	;	タイトル
+	;
+	cls 3,15
+	;
+	color 0,3,1,1+128
+	mag "title",160,96
+	gprt 0,256,"ここをクリックして下さい",1,13
+	;
+	mplay
+	contrast 16,1
+	;
+	msset 320,300
+	repeat
+	mswait %1,%2,%3
+	if %1=0 : loop
+	;
+	contrast 0,1
+	palwait
+*2
+	;	説明１
+	;
+	cls 3,15
+	contrast 16
+	;
+	color 0,1,0,3
+	console 1,15,4,17
+	locate 4,7
+	;
+	mess "☆LSPは…"
+	mess ""
+	mess "	LSP( ﾗｲﾄｽｰﾌﾟﾌﾟﾛｾｯｻ )は画像データの表示や
+	mess "	音楽の演奏を統合的に管理するインタプリタ言語です。"
+	mess "	PC9801のグラフィック画面を使用したデモ、"
+	mess "	複数のプログラム実行を選択するメニュー、"
+	mess "	画面レイアウトのテストなどに利用するために"
+	mess "	開発されたものです。"
+	;
+	pause 40 : color 0,0,0,0
+	repeat 5
+	mess "" : loop
+	;
+	color 0,1,0,3
+	console 12,24,20,17
+	;
+	mess "☆LSPは以下のような特徴があります"
+	mess ""
+	mess "　1.簡単な命令セットと、即実行できる手軽さ"
+	mess "　2.MAG,RGBなどの画像形式に対応"
+	mess "　3.マウスによる選択、実行が可能"
+	mess "　4.FM音源、MIDI楽器による音楽演奏ルーチンを内蔵"
+	mess "　5.子プロセス実行による外部プログラム使用が可能"
+	mess "　6.ソースファイルと複数のデータファイルをリンクして"
+	mess "　　１つのファイルにまとめることが可能"
+	;
+	color 0,3,0,1+128
+	gprt 368,368,"ここをクリックして下さい",1,13
+	;
+	msset 566,378
+	repeat
+	mswait %1,%2,%3
+	if %1=0 : loop
+	;
+	contrast 0,1
+	palwait
+*3
+	;	説明２
+	;
+	cls 3,15
+	contrast 16
+	color 0,1,0,3
+	console 5,24,16,22
+	;
+	mess "☆アイデア次第で色々な場面に使用できます。"
+	mess ""
+	mess "　・ＣＧ集、音楽集の作成"
+	mess "　・ゲームのオープニング、タイトル、エンディングなどに"
+	mess "　・複数のファイルから１つを選んで実行させるメニューに"
+	mess "　・店頭や即売会でのデモンストレーション"
+	mess "　・学園祭での案内、展示などに"
+	mess "　・画面レイアウトの試作"
+	mess "　・キャラクタデータ作成、変換などに"
+	;
+	color 0,3,0,1+128
+	gprt 368,368,"ここをクリックして下さい",1,13
+	;
+	msset 566,378
+	repeat
+	mswait %1,%2,%3
+	if %1=0 : loop
+	;
+	contrast 0,1
+	palwait
+*4
+	;	COPY DEMO
+	;
+	cls 3
+	page 1,1
+	;
+	mag "title",0,0
+	mask 15
+	get 0,0,320,100
+	;
+	cls 2
+	;
+	%1=0:%2=0
+*5
+	%0=0:repeat 32
+	boxf %0,%1,%0+19,%1+19,%2+4
+	%2=%2+1:if %2=11 : %2=0
+	%0=%0+20:loop
+	%1=%1+20:if %1<400 : goto *5
+	;
+	page 0,0
+	cls 2,15
+	;
+	contrast 16
+	pause 100
+	;
+	%0=0:repeat 4
+	put 0,%0,320,100:pause 26:%0=%0+100:loop
+	%0=0:repeat 4
+	put 320,%0,320,100:pause 26:%0=%0+100:loop
+	;
+	mcopy 0,3027,15
+	mcopy 0,27,16
+	;
+	page 1,0
+	;
+	boxf 0,0,639,399,15
+	%0=0:repeat 4
+	put 0,%0,320,100:put 320,%0,320,100
+	%0=%0+100:loop
+	mask 15
+	;
+	page 0,0
+	;
+	%0=0:repeat 4
+	mput 0,%0,320,100:pause 26:%0=%0+100:loop
+	%0=0:repeat 4
+	mput 320,%0,320,100:pause 26:%0=%0+100:loop
+	;
+	pause 160
+	;
+	page 1,0
+	boxf 0,0,639,399,15
+	%0=0:repeat 4
+	put 0,%0,320,100:put 320,%0,320,100
+	%0=%0+100:loop
+	page 0,0
+	;
+	mcopy 0,77,16
+	pause 260
+	;
+	repeat 90
+	rnd %0,639:rnd %1,399:rnd %2,639:rnd %3,399:rnd %4,10
+	boxf %0,%1,%2,%3,%4+5
+	pause 2
+	loop
+	;
+	put 240,150,320,100
+	pause 150
+	;
+	contrast 0,4
+	;
+	repeat 50
+	rnd %0,639:rnd %1,299
+	put %0,%1,320,100
+	pause 2
+	loop
+	;
+	palwait
+	mstop
+	;
+*6
+	;	説明３
+	;
+	cls 3,15
+	color 12,1,0,1
+	console 2,24,10,24
+	;
+	mess "☆とっても手軽なインタプリタ言語"
+	mess ""
+	mess "　・メッセージに多彩な効果がつけられます"
+	mess "　・キャラクター表示、合成もできます"
+	mess "　・マウスドライバー、MAGローダーは必要ありません"
+	mess "　・マウスがなくても、キーでらくらく操作"
+	mess "　・マウスカーソルも自分で作れるよ"
+	mess "　・外部プログラム呼び出しでさらに広がる応用範囲"
+	mess "　・どんな機種でも同じ時間待ち（WAIT）制御"
+	mess "　・バイナリファイルのセーブ・ロードが可能"
+	mess "　・ソフトへの組み込みは自由です"
+	mess ""
+	mess "  詳しくは、LSP.DOC , LSP.REF をお読みください"
+	;
+	color 11,3,0,1
+	gprt 368,358,"サンプルプログラムを終了する",1,13
+	gprt 368,378,"もう一度最初から見直す",2,13
+	;
+	palette 15,$545
+	palette 13,$656
+	palette 11,$c2a
+	;
+	mplay 2000
+	contrast 16,2
+	;
+	msset 566,388
+	repeat
+	mswait %1,%2,%3
+	if %1=0 : loop
+	;
+	contrast 0,2
+	palwait
+	;
+	if %1=2 : goto *1
+	;
+	mstop 1
+	end
+
+

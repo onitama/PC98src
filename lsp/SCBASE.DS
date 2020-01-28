@@ -1,0 +1,51 @@
+
+	;
+	;	sprite (40x40) and (24x16)
+	;	screen base script
+	;
+	screen 1,0,1
+	console 18,23,2
+	mono:contrast 0
+	;
+	music "OH12":mplay
+	;
+*1
+	cls 3,4
+	msbox 0,384,639,399,1,8
+	contrast 16,0
+	;
+	%0=2
+	repeat
+	;
+	locate %0,2
+	mess "GOGO!!"
+	%0=%0+10 : if %0<32 : loop
+	;
+	locate 2,16
+	color 15,3,1,1
+	mess "ここを押してね",1,8
+	;
+	locate 0,23
+	color 13,1,0,0
+	mess "やっほーーー、いい天気だすなぁ・・・・。"
+	mess "MIDIのエクスクルーシブメッセージ（各楽器固有の特殊なデータ）"
+	mess "をPC98上で管理するためのツールです。"
+	mess "エクスクルーシブデータをファイルにセーブ、またファイルからデータを"
+	mess "MIDIに出力する機能のほか、他のツールへのファイル変換、98などの"
+	mess "FM音源データ（OPN音色）をYAMAHA FM音源エクスクルーシブに変換する"
+	mess "機能などを持っています。"
+	;
+	mswait %1 , %2 , %3
+	contrast 0,1
+	palwait
+
+	if %0=2 : print "Abort." : end
+	if %1>0 : goto *1
+
+	print "X=",%2
+	print "Y=",%3
+
+	;child "pmap.exe"
+	end
+
+

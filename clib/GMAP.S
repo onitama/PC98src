@@ -1,0 +1,963 @@
+
+
+	.MODEL	small
+
+BASIC	EQU	0
+
+
+
+INCLUDE IFTHEN.MAC
+
+
+OBJ_BUFF_WIDTH	EQU	40
+OBJ_BUFF_HEIGHT	EQU	25
+OBJ_XOFS	EQU	2
+OBJ_YOFS	EQU	2
+
+
+S_FRAME STRUC
+	BPSAVE	DW	?
+	RETADD	DW	?
+	DATA1	DW	?
+	DATA2	DW	?
+	DATA3	DW	?
+	DATA4	DW	?
+S_FRAME ENDS
+
+	;
+	;	character map scroll/sprite module
+	;			created /T.anazawa 1990(c)
+	;			arranged/Usuaji,onitama 1991(c)
+	;
+
+
+_TEXT	segment	WORD public 'CODE'
+	ASSUME	CS:_TEXT,CS:_TEXT
+
+	PUBLIC	_set_map,_set_pat,_set_disp
+	PUBLIC	_redraw,_update,_putfg,_putfg2
+	PUBLIC	_clrfg
+
+	; _set_map		 MAP_SEG, MAP_SX, MAP_SY
+	; _set_pat		 PAT_SEG, BKGND_OFS, FWGND_OFS
+	; _set_disp		 DISP_X0, DISP_Y0, DISP_SX, DISP_SY
+	; _redraw		 MAP_X, MAP_Y
+	; _update		 MAP_X, MAP_Y
+	; _putfg		 MAP_X, MAP_Y, CHAR_CODE
+	; _putfg2		 MAP_X, MAP_Y, CHAR_CODE
+	; _wipfg2		 MAP_X, MAP_Y
+	; _clrfg		 CHAR_CODE
+	; _emove		 MAP_X, MAP_Y, EKAZZ, EDATA ptr
+	; _getbg ( int )	 MAP_X, MAP_Y
+	; _putbg		 MAP_X, MAP_Y, CHAR_CODE
+	; _putbg2		 MAP_X, MAP_Y, CHAR_CODE
+	; _getfg ( int )	 MAP_X, MAP_Y
+	; _dputbg		 SCREEN_X, SCREEN_Y, CHAR_CODE
+
+
+	MAP_SEG	DW	0
+	MAP_SX	DW	160
+	MAP_SY	DW	100
+	PAT_SEG	DW	0
+	BKGND_OFS DW	0
+	FWGND_OFS DW	0
+	DISP_X0	DW	0
+	DISP_Y0	DW	0
+	DISP_SX	DW	32
+	DISP_SY	DW	20
+
+	MAP_ADDR DW	0
+	GRAM_ADDR DW	0
+
+	CUR_OBJ	DB OBJ_BUFF_WIDTH * OBJ_BUFF_HEIGHT	DUP( 0 )
+	NEW_OBJ	DB OBJ_BUFF_WIDTH * OBJ_BUFF_HEIGHT	DUP( 0 )
+
+
+	;	for emove function
+
+EKAZZ	dw	0
+EADR	dw	0
+MOVE_X	dw	0
+MOVE_Y	dw	0
+
+
+
+_initialize	PROC
+PUBLIC _initialize
+	IFE BASIC
+		XOR AX,AX
+		OUT 0A4H,AL
+		MOV AX,100H
+		@DO
+			NOP
+			DEC AX
+		@LOOP JNZ
+		XOR AX,AX
+		OUT 0A6H,AL
+		MOV AX,100H
+		@DO
+			NOP
+			DEC AX
+		@LOOP JNZ
+		
+		MOV AH,042H
+		MOV CH,0C0H
+		INT 18H
+		
+		MOV AH,040H
+		INT 18H
+		
+		MOV AX,100H
+		@DO
+			NOP
+			DEC AX
+		@LOOP JNZ
+		
+		RET
+	ENDIF
+_initialize ENDP
+
+
+
+
+
+_set_map PROC
+PUBLIC _set_map
+	IF BASIC
+		LES SI,8[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[MAP_SEG],AX
+		LES SI,4[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[MAP_SX],AX
+		LES SI,[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[MAP_SY],AX
+		IRET
+	ELSE
+		PUSH BP
+		MOV BP,SP
+		
+		MOV AX,[BP].DATA1
+		MOV CS:[MAP_SEG],AX
+		MOV AX,[BP].DATA2
+		MOV CS:[MAP_SX],AX
+		MOV AX,[BP].DATA3
+		MOV CS:[MAP_SY],AX
+		
+		POP BP
+		RET
+	ENDIF
+_set_map ENDP
+
+
+
+
+_set_pat PROC
+PUBLIC _set_pat
+	IF BASIC
+		LES SI,8[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[PAT_SEG],AX
+		LES SI,4[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[BKGND_OFS],AX
+		LES SI,[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[FWGND_OFS],AX
+		IRET
+	ELSE
+		PUSH BP
+		MOV BP,SP
+		
+		MOV AX,[BP].DATA1
+		MOV CS:[PAT_SEG],AX
+		MOV AX,[BP].DATA2
+		MOV CS:[BKGND_OFS],AX
+		MOV AX,[BP].DATA3
+		MOV CS:[FWGND_OFS],AX
+		
+		POP BP
+		RET
+	ENDIF
+_set_pat ENDP
+
+
+
+_set_disp PROC
+PUBLIC _set_disp
+	IF BASIC
+		LES SI,12[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[DISP_X0],AX
+		MOV CX,AX
+		LES SI,8[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[DISP_Y0],AX
+		MOV DX,AX
+		LES SI,4[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[DISP_SX],AX
+		LES SI,[BX]
+		MOV AX,ES:[SI]
+		MOV CS:[DISP_SY],AX
+	ELSE
+		PUSH BP
+		MOV BP,SP
+		
+		MOV AX,[BP].DATA1
+		MOV CS:[DISP_X0],AX
+		MOV CX,AX
+		MOV AX,[BP].DATA2
+		MOV CS:[DISP_Y0],AX
+		MOV DX,AX
+		MOV AX,[BP].DATA3
+		MOV CS:[DISP_SX],AX
+		MOV AX,[BP].DATA4
+		MOV CS:[DISP_SY],AX
+	ENDIF
+	MOV AX,DX
+	SHL AX,1	; 2
+	SHL AX,1	; 4
+	ADD AX,DX	; 5
+	MOV AH,AL
+	XOR AL,AL
+	ADD AX,CX
+	ADD AX,CX	; 80 * 16 + X * 2
+	MOV CS:[GRAM_ADDR],AX
+	
+	IF BASIC
+		IRET
+	ELSE
+		POP BP
+		RET
+	ENDIF
+_set_disp ENDP
+
+
+
+PL0	EQU	(32 * 0)
+PL1	EQU	(32 * 1)
+PL2	EQU	(32 * 2)
+PL3	EQU	(32 * 3)
+
+PUT_A_CHAR MACRO
+	PUSH DS
+	PUSH DI
+	PUSH BX
+	PUSH DX
+	PUSH CX
+	
+	XOR AL,AL	; AH には MAP CODE を入れておくこと
+	SHR AX,1
+	ADD AX,CS:[BKGND_OFS]
+	MOV DI,AX
+	MOV AL,CS:DIFOFS[BX]
+	MOV CS:[BX],AL
+
+	MOV BX,DX
+	MOV DS,CS:[PAT_SEG]
+	PUSH BP
+	MOV BP,0A800H
+	MOV CX,16
+	CLD
+
+	OR AL,AL
+	JZ #NO_FWGND
+	MOV AH,AL
+	XOR AL,AL
+	SHR AX,1
+	ADD AX,CS:[FWGND_OFS]
+	MOV SI,AX
+	@DO
+		MOV AX,[SI]
+		OR AX,PL1[SI]
+		OR AX,PL2[SI]
+		OR AX,PL3[SI]
+		NOT AX
+		MOV DX,AX
+		
+		MOV ES,BP
+		MOV AX,[DI]
+		AND AX,DX
+		OR AX,[SI]
+		MOV ES:[BX],AX
+		
+		MOV AX,PL1[DI]
+		AND AX,DX
+		OR AX,PL1[SI]
+		MOV ES:8000H[BX],AX
+		
+		MOV AX,0B800H
+		MOV ES,AX
+		MOV AX,PL2[DI]
+		AND AX,DX
+		OR AX,PL2[SI]
+		MOV ES:[BX],AX
+		
+		MOV AX,0E000H
+		MOV ES,AX
+		MOV AX,PL3[DI]
+		AND AX,DX
+		OR AX,PL3[SI]
+		MOV ES:[BX],AX
+		
+		ADD SI,2
+		ADD DI,2
+		ADD BX,80
+		
+	@LOOP LOOP
+	JMP #PUTR
+
+#NO_FWGND:
+	@DO
+		MOV ES,BP
+		MOV AX,[DI]
+		MOV ES:[BX],AX
+		
+		MOV AX,PL1[DI]
+		MOV ES:8000H[BX],AX
+		
+		MOV AX,0B800H
+		MOV ES,AX
+		MOV AX,PL2[DI]
+		MOV ES:[BX],AX
+		
+		MOV AX,0E000H
+		MOV ES,AX
+		MOV AX,PL3[DI]
+		MOV ES:[BX],AX
+		
+		ADD DI,2
+		ADD BX,80
+		
+	@LOOP LOOP
+#PUTR:
+	POP BP
+	POP CX
+	POP DX
+	POP BX
+	POP DI
+	POP DS
+ENDM
+
+
+
+
+
+DIFOFS	EQU	((OFFSET NEW_OBJ) - (OFFSET CUR_OBJ))
+
+cur_map_ptr	EQU	-2[BP]
+new_map_ptr	EQU	-4[BP]
+gram_ptr	EQU	-6[BP]
+obj_ptr		EQU	-8[BP]
+stack_offset	EQU	8
+
+_update PROC
+PUBLIC _update
+	IF BASIC
+		LES SI,[BX]
+		MOV AX,ES:[SI]
+		MUL CS:[MAP_SX]
+		LES SI,4[BX]
+		ADD AX,ES:[SI]
+UPDATE_FK:
+		MOV BP,SP
+		SUB SP,stack_offset
+	ELSE
+		PUSH BP
+		MOV BP,SP
+		SUB SP,stack_offset
+		PUSH DS
+		PUSH ES
+		PUSH SI
+		PUSH DI
+		
+		MOV AX,[BP].DATA2
+		MUL CS:[MAP_SX]
+		ADD AX,[BP].DATA1
+	ENDIF
+
+		CALL	UDEXE
+
+	IF BASIC
+		ADD SP,stack_offset
+		IRET
+	ELSE
+		POP DI
+		POP SI
+		POP ES
+		POP DS
+		ADD SP,stack_offset
+		POP BP
+		RET
+	ENDIF
+_update ENDP
+
+
+
+
+UDEXE	proc
+
+	MOV new_map_ptr,AX
+	XCHG CS:[MAP_ADDR],AX
+	MOV cur_map_ptr,AX
+	MOV AX,CS:[GRAM_ADDR]
+	MOV gram_ptr,AX
+
+	MOV AX,OFFSET CUR_OBJ
+	ADD AX,OBJ_BUFF_WIDTH*OBJ_YOFS+OBJ_XOFS		; FG offset
+	MOV WORD PTR obj_ptr,AX
+
+	MOV AX,CS:[MAP_SEG]
+	MOV DS,AX
+	MOV ES,AX
+	CLD
+	
+	MOV CH,byte ptr CS:[DISP_SY]
+	@DO
+		MOV BX,obj_ptr
+		MOV DI,new_map_ptr
+		MOV SI,cur_map_ptr
+		MOV DX,gram_ptr
+		MOV CL,byte ptr CS:[DISP_SX]
+		@DO
+			CMPSB
+CHG:			JNZ #LB1
+			MOV AL,CS:[BX]
+			CMP AL,CS:DIFOFS[BX]
+			@IF NZ
+		#LB1:
+				MOV AH,-1[DI]
+				PUSH SI
+				PUT_A_CHAR
+				POP SI
+				MOV AX,DS
+				MOV ES,AX
+			@ENDIF
+			INC BX
+			ADD DX,2
+			DEC CL
+		@LOOP JNZ
+		MOV AX,CS:[MAP_SX]
+		ADD new_map_ptr,AX
+		ADD cur_map_ptr,AX
+		ADD WORD PTR obj_ptr,OBJ_BUFF_WIDTH
+		ADD WORD PTR gram_ptr,80 * 16
+		
+		DEC CH
+	@LOOP JNZ
+	MOV byte ptr CS:[CHG],75H
+	RET
+
+UDEXE	endp
+
+
+
+
+_redraw PROC
+PUBLIC _redraw
+	MOV byte ptr CS:[CHG],0EBH
+	JMP _update
+_redraw ENDP
+
+
+
+
+
+
+_putfg PROC
+PUBLIC _putfg
+	IF BASIC
+		LES SI,8[BX]
+		MOV DI,ES:[SI]
+		LES SI,4[BX]
+		MOV AX,ES:[SI]
+		LES SI,[BX]
+		MOV CX,ES:[SI]
+	ELSE
+		PUSH BP
+		MOV BP,SP
+		
+		PUSH DI
+		MOV DI,[BP].DATA1
+		MOV AX,[BP].DATA2
+		MOV CX,[BP].DATA3
+	ENDIF
+
+	ADD DI,OBJ_XOFS
+	ADD AX,OBJ_YOFS
+
+	MOV DX,AX
+	SHL AX,1	; 2
+	SHL AX,1	; 4
+	ADD AX,DX	; 5
+	SHL AX,1	; 10
+	SHL AX,1	; 20
+	SHL AX,1	; 40
+	ADD DI,AX
+	MOV CS:NEW_OBJ[DI],CL
+
+	IF BASIC
+		IRET
+	ELSE
+		POP DI
+		POP BP
+		RET
+	ENDIF
+_putfg ENDP
+
+
+_putfg2 PROC
+PUBLIC _putfg2
+	IF BASIC
+		LES SI,8[BX]
+		MOV DI,ES:[SI]
+		LES SI,4[BX]
+		MOV AX,ES:[SI]
+		LES SI,[BX]
+		MOV CX,ES:[SI]
+	ELSE
+		PUSH BP
+		MOV BP,SP
+		
+		PUSH DI
+		MOV DI,[BP].DATA1
+		MOV AX,[BP].DATA2
+		MOV CX,[BP].DATA3
+	ENDIF
+
+	ADD DI,OBJ_XOFS
+	ADD AX,OBJ_YOFS
+
+	MOV DX,AX
+	SHL AX,1	; 2
+	SHL AX,1	; 4
+	ADD AX,DX	; 5
+	SHL AX,1	; 10
+	SHL AX,1	; 20
+	SHL AX,1	; 40
+	ADD DI,AX
+	MOV CS:NEW_OBJ[DI],CL
+	INC CL
+	INC DI
+	MOV CS:NEW_OBJ[DI],CL
+	ADD CL,8-1
+	ADD DI,OBJ_BUFF_WIDTH - 1
+	MOV CS:NEW_OBJ[DI],CL
+	INC CL
+	INC DI
+	MOV CS:NEW_OBJ[DI],CL
+
+	IF BASIC
+		IRET
+	ELSE
+		POP DI
+		POP BP
+		RET
+	ENDIF
+_putfg2 ENDP
+
+
+
+
+
+_wipfg2 PROC
+PUBLIC _wipfg2
+		PUSH BP
+		MOV BP,SP
+		
+		PUSH DI
+		MOV DI,[BP].DATA1
+		MOV AX,[BP].DATA2
+
+	MOV CX,0
+	MOV DX,AX
+	SHL AX,1	; 2
+	SHL AX,1	; 4
+	ADD AX,DX	; 5
+	SHL AX,1	; 10
+	SHL AX,1	; 20
+	SHL AX,1	; 40
+	ADD DI,AX
+	MOV CS:NEW_OBJ[DI],CL
+	INC DI
+	MOV CS:NEW_OBJ[DI],CL
+	ADD DI,OBJ_BUFF_WIDTH - 1
+	MOV CS:NEW_OBJ[DI],CL
+	INC DI
+	MOV CS:NEW_OBJ[DI],CL
+
+		POP DI
+		POP BP
+		RET
+
+_wipfg2 ENDP
+
+
+
+
+
+_clrfg PROC
+PUBLIC _clrfg
+	IF BASIC
+		LES SI,[BX]
+		MOV AX,ES:[SI]
+CLEAR_FK:
+	ELSE
+		PUSH BP
+		MOV BP,SP
+		
+		PUSH DI
+		MOV AX,[BP].DATA1
+	ENDIF
+
+	MOV BX,CS
+	MOV ES,BX
+	MOV DI,OFFSET NEW_OBJ
+	MOV CX,OBJ_BUFF_WIDTH * OBJ_BUFF_HEIGHT / 2
+	MOV AH,AL
+	CLD
+	REP STOSW
+
+	IF BASIC
+		IRET
+	ELSE
+		POP DI
+		POP BP
+		RET
+	ENDIF
+_clrfg ENDP
+
+
+public CUR_OBJ, NEW_OBJ
+
+
+
+;
+;		tiny version of OSSENE
+;			enemy block data put on FG.
+;
+;	void	emove( int mapx,int mapy,int ekazz,*block ptr )
+;
+;		*block data format
+;			+0 : flag ( 0/no put 1-255/put enable )
+;			+1 : abs X axis
+;			+2 : abs Y axis
+;			+3 : chr no.
+;
+_emove PROC
+PUBLIC _emove
+		PUSH BP
+		MOV BP,SP
+		SUB SP,stack_offset
+		PUSH DS
+		PUSH ES
+		PUSH SI
+		PUSH DI
+		
+		MOV AX,[BP].DATA2
+		MUL CS:[MAP_SX]
+		ADD AX,[BP].DATA1
+		PUSH AX
+
+	MOV AX,[BP].DATA1
+	MOV CS:MOVE_X,AX	;表示Ｘ
+	MOV AX,[BP].DATA2
+	MOV CS:MOVE_Y,AX	;表示Ｙ
+	MOV AX,[BP].DATA3
+	MOV CS:EKAZZ,AX
+	MOV AX,[BP].DATA4
+	MOV CS:EADR,AX
+
+; ------------------------------------------------------------
+
+	;	clear FG
+	;
+
+	;XOR AX,AX
+	;MOV BX,CS
+	;MOV ES,BX
+	;MOV DI,OFFSET NEW_OBJ
+	;MOV CX,OBJ_BUFF_WIDTH * OBJ_BUFF_HEIGHT / 2
+	;CLD
+	;REP STOSW
+
+	;	put on FG
+	;
+	MOV CX,CS:EKAZZ
+	MOV BX,CS:EADR
+emain:
+	PUSH BX
+	PUSH CX
+	CALL	eput
+	POP CX
+	POP BX
+	ADD BX,4
+	LOOP emain
+
+; ------------------------------------------------------------
+
+	POP AX
+	CALL UDEXE
+
+		POP DI
+		POP SI
+		POP ES
+		POP DS
+		ADD SP,stack_offset
+		POP BP
+		RET
+
+_emove ENDP
+
+
+
+TAIRYOKU	EQU 0	;体力，生死データ（1byte）
+ABS_X		EQU 1	;Ｘ座標軸（1byte）
+ABS_Y		EQU 2	;Ｙ座標軸（1byte）
+CHR_NUM		EQU 3	;キャラクタナンバー（1byte）
+
+
+eput	proc
+
+	xor ah,ah
+	MOV Al,DS:TAIRYOKU[BX]
+	OR Al,Al
+	JZ NO_PUT
+
+
+;	表示範囲内にいるかチェック０－SIZE_X　から MOVE_MAX_X
+SUPER:
+	MOV AH,0
+	MOV AL,DS:ABS_X[BX]
+	ADD AL,OBJ_XOFS
+
+	SUB AX,CS:MOVE_X
+	JC NO_PUT	;小さい
+	MOV DX,CS:DISP_SX
+	ADD DX,OBJ_XOFS
+	CMP AX,DX
+	JNC NO_PUT	;大きい
+	MOV DI,AX	;Ｘ座標
+
+	MOV AH,0
+	MOV AL,DS:ABS_Y[BX]
+	ADD AL,OBJ_YOFS
+
+	SUB AX,CS:MOVE_Y
+	JC NO_PUT	;小さい
+	MOV DX,CS:DISP_SY
+	ADD DX,OBJ_YOFS
+	CMP AX,DX
+	JNC NO_PUT	;大きい
+
+	MOV CL,DS:CHR_NUM[BX]
+	MOV CH,0
+
+	MOV DX,AX
+	SHL AX,1	; 2
+	SHL AX,1	; 4
+	ADD AX,DX	; 5
+	SHL AX,1	; 10
+	SHL AX,1	; 20
+	SHL AX,1	; 40
+	ADD DI,AX
+
+	MOV CS:NEW_OBJ[DI],CL
+	INC CL
+	INC DI
+	MOV CS:NEW_OBJ[DI],CL
+	ADD CL,8-1
+	ADD DI,OBJ_BUFF_WIDTH - 1
+	MOV CS:NEW_OBJ[DI],CL
+	INC CL
+	INC DI
+	MOV CS:NEW_OBJ[DI],CL
+
+NO_PUT:
+	RET
+
+eput	endp
+
+
+
+_getbg PROC
+PUBLIC _getbg
+		PUSH BP
+		MOV BP,SP
+		PUSH ES
+		PUSH SI
+		
+		MOV AX,[BP].DATA2
+		MUL CS:[MAP_SX]
+		ADD AX,[BP].DATA1
+		MOV SI,AX
+		MOV AX,CS:[MAP_SEG]
+		MOV ES,AX
+		;
+		XOR AH,AH
+		MOV AL,ES:[SI]
+		;
+		POP SI
+		POP ES
+		POP BP
+		RET
+_getbg endp
+
+
+
+
+_putbg PROC
+PUBLIC _putbg
+		PUSH BP
+		MOV BP,SP
+		PUSH ES
+		PUSH SI
+		
+		MOV AX,[BP].DATA2
+		MUL CS:[MAP_SX]
+		ADD AX,[BP].DATA1
+		MOV SI,AX
+		MOV AX,CS:[MAP_SEG]
+		MOV ES,AX
+		MOV AX,[BP].DATA3
+		;
+		MOV ES:[SI],AL
+		;
+		POP SI
+		POP ES
+		POP BP
+		RET
+_putbg endp
+
+
+
+
+_putbg2 PROC
+PUBLIC _putbg2
+		PUSH BP
+		MOV BP,SP
+		PUSH ES
+		PUSH SI
+		
+		MOV AX,[BP].DATA2
+		MUL CS:[MAP_SX]
+		ADD AX,[BP].DATA1
+		MOV SI,AX
+		MOV AX,CS:[MAP_SEG]
+		MOV ES,AX
+		MOV AX,[BP].DATA3
+		;
+		PUSH SI
+		MOV ES:[SI],AL
+		INC SI
+		INC AL
+		MOV ES:[SI],AL
+		ADD AL,7
+		POP SI
+		ADD SI,CS:[MAP_SX]
+		MOV ES:[SI],AL
+		INC SI
+		INC AL
+		MOV ES:[SI],AL
+		;
+		POP SI
+		POP ES
+		POP BP
+		RET
+_putbg2 endp
+
+
+
+
+_getfg PROC
+PUBLIC _getfg
+		PUSH BP
+		MOV BP,SP
+		PUSH ES
+		PUSH SI
+		
+		MOV AX,[BP].DATA2
+		ADD AX,OBJ_YOFS
+		MOV CX,OBJ_BUFF_WIDTH
+		MUL CX
+		ADD AX,[BP].DATA1
+		ADD AX,OBJ_XOFS
+		MOV SI,AX
+		;
+		XOR AH,AH
+		MOV AL,CS:NEW_OBJ[SI]
+		;
+		POP SI
+		POP ES
+		POP BP
+		RET
+_getfg endp
+
+
+
+_dputbg PROC
+PUBLIC _dputbg
+
+	PUSH BP
+	MOV BP,SP
+	PUSH DS
+	PUSH ES
+	PUSH SI
+	;
+	MOV AX,[BP].DATA2
+	MOV DX,80
+	MUL DX
+	ADD AX,[BP].DATA1
+	MOV BX,AX
+	;
+	MOV AX,[BP].DATA3
+	MOV DX,128
+	MUL DX
+	ADD AX,CS:[BKGND_OFS]
+	MOV SI,AX
+	MOV DS,CS:[PAT_SEG]
+	;
+	MOV CX,16
+EMP:
+	MOV AX,0A800H
+	MOV ES,AX
+	MOV AX,DS:PL0[SI]
+	MOV ES:[BX],AX
+	
+	MOV AX,0B000H
+	MOV ES,AX
+	MOV AX,DS:PL1[SI]
+	MOV ES:[BX],AX
+	
+	MOV AX,0B800H
+	MOV ES,AX
+	MOV AX,DS:PL2[SI]
+	MOV ES:[BX],AX
+	
+	MOV AX,0E000H
+	MOV ES,AX
+	MOV AX,DS:PL3[SI]
+	MOV ES:[BX],AX
+
+	ADD SI,2
+	ADD BX,80
+
+	LOOP EMP
+
+	POP SI
+	POP ES
+	POP DS
+	POP BP
+	RET
+
+
+_dputbg	endp
+
+
+
+_TEXT	ends
+
+END
+

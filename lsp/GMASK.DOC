@@ -1,0 +1,249 @@
+/*---------------------------------------------------------------------------
+	ＧＭＡＳＫヘルプドキュメント
+	pc98 masked graphics system routine "gmask.h" / 1994(c)onion software
+	'gmask.h' , 'gmask.obj'
+---------------------------------------------------------------------------*/
+
+	GMASKは高度なグラフィック画面操作をＣ言語で実現させるための
+	モジュールで、次のような機能を持っています。
+
+	　　◎マスキングチャンネルを含む任意の大きさのキャラクタGET,PUT
+	　　◎グラフィックVRAM内高速コピー、ページ間高速コピー
+	　　◎画面フェード機能、フェードコピー機能
+	　　◎マスクを持たないキャラクタGET,PUT
+	　　◎ドット単位の制御、クリッピング、プライオリティ設定が可能な
+	　　　高機能ソフトウエアスプライト
+	　　◎GDCコマンドを利用した縦ライン数設定
+	　　◎GDCの動作周波数設定
+
+
+	/*-------------------------------------------------------------------
+		introduction
+	-------------------------------------------------------------------*/
+
+	"GMASK" ('gmask.obj') は、PC9801用のグラフィック画面制御、GDC制御を
+	サポートするBorland TurboＣ(++)用の関数群です。
+	使用する場合は、
+
+		#include "gmask.h"
+
+	のファイルを最初にインクルードしておく必要があります。
+	必ずスモールモデルでコンパイルして下さい。
+	"gmask.h"を使う場合は、1つのオブジェクトファイルもリンクします。
+
+	例:（コマンドラインから）
+		tcc -ms test.c gmask.obj
+
+
+	/*-------------------------------------------------------------------
+		command reference of "gmask.h"
+	-------------------------------------------------------------------*/
+
+	◎マスク画面作成
+
+		void	msk_make( int wkseg, int wkcol );
+
+		int wkseg	= マスク画面ベースセグメント
+		int wkcol	= マスクカラー
+
+
+	◎画面高速合成( page1 -> page0 )
+
+		void	msk_merge( int wkseg, int wkcol );
+
+		int wkseg	= マスク画面ベースセグメント
+		int wkcol	= マスクカラー
+
+
+	◎画面フェード合成
+
+		void	msk_merge2( int wkseg, int wkcol, int mmode, int vinc, int wtime );
+
+		int wkseg	= マスク画面ベースセグメント
+		int wkcol	= マスクカラー
+		int mmode	= 転送先ページ　page0(0) / page1(1)
+		int vinc	= フェードパターン
+		int wtime	= 合成スピード
+
+
+	◎MASKキャラクタデータGET
+
+		void	msk_get( int wkseg, int vofs, int xx, int yy );
+
+		int wkseg	= キャラクタバッファ・ベースセグメント
+		int vofs	= VRAMアドレス
+		int xx		= Xサイズ (*8dot)
+		int yy		= Yサイズ (*1dot)
+
+
+	◎MASKキャラクタデータPUT
+
+		void	msk_put( int wkseg, int vofs, int xx, int yy );
+
+		int wkseg	= キャラクタバッファ・ベースセグメント
+		int vofs	= VRAMアドレス
+		int xx		= Xサイズ (*8dot)
+		int yy		= Yサイズ (*1dot)
+
+
+	◎MASKキャラクタデータ、マスク画面下にPUT
+
+		void	msk_mput( int wkseg, int vofs, int xx, int yy );
+
+		int wkseg	= キャラクタバッファ・ベースセグメント
+		int vofs	= VRAMアドレス
+		int xx		= Xサイズ (*8dot)
+		int yy		= Yサイズ (*1dot)
+
+
+	◎キャラクタデータGET
+
+		void	msk_lget( int wkseg, int vofs, int xx, int yy, int pmask );
+
+		int wkseg	= キャラクタバッファ・ベースセグメント
+		int vofs	= VRAMアドレス
+		int xx		= Xサイズ (*8dot)
+		int yy		= Yサイズ (*1dot)
+		int pmask	= プレーンマスク (0-15)
+
+
+	◎キャラクタデータPUT
+
+		void	msk_lput( int wkseg, int vofs, int xx, int yy, int pmask );
+
+		int wkseg	= キャラクタバッファ・ベースセグメント
+		int vofs	= VRAMアドレス
+		int xx		= Xサイズ (*8dot)
+		int yy		= Yサイズ (*1dot)
+		int pmask	= プレーンマスク (0-15)
+
+
+	◎グラフィック画面内コピー
+
+		void	g_copy( int xx, int yy, int sx, int sy, int tx, int ty );
+
+		int xx		= 転送元X座標 (*1dot)
+		int yy		= 転送元Y座標 (*1dot)
+		int sx		= Xサイズ (*8dot)
+		int sy		= Yサイズ (*1dot)
+		int tx		= 転送先X座標 (*1dot)
+		int ty		= 転送先Y座標 (*1dot)
+
+
+	◎グラフィックページ間コピー
+
+		void	g_copy2( int xx, int yy, int sx, int sy, int tx, int ty, int srcpage );
+
+		int xx		= 転送元X座標 (*1dot)
+		int yy		= 転送元Y座標 (*1dot)
+		int sx		= Xサイズ (*8dot)
+		int sy		= Yサイズ (*1dot)
+		int tx		= 転送先X座標 (*1dot)
+		int ty		= 転送先Y座標 (*1dot)
+		int srcpage	= 転送元ページ
+
+
+	◎スプライトシステム初期化
+
+		void	ssp_init( int chrdat_seg, int ssp_kazu );
+
+		int chrdat_seg	= スプライトキャラクタデータ・ベースセグメント
+		int ssp_kazu	= スプライトの最大数(1-64)
+
+
+	◎スプライトキャラクタ作成
+
+		void	ssp_ext( int chrdat_seg );
+
+		int chrdat_seg	= スプライトキャラクタデータ・ベースセグメント
+
+
+	◎スプライト表示エリア設定
+
+		void	ssp_clip( int x1, int y1, int x2, int y2, int v_offset );
+
+		int x1		= 左上X座標(*1dot)
+		int y1		= 左上Y座標(*1dot)
+		int x2		= 右下X座標(*1dot)
+		int y2		= 右下Y座標(*1dot)
+		int v_offset	= 表示オフセット
+
+		通常は、(0,0)-(639,399) v_offset=0 に設定されています。
+
+
+	◎スプライトデータ設定
+
+		void	ssp_set( int sp_no, int xx, int yy, int chr_no );
+
+		int sp_no	= スプライトNo.(0-63)
+		int x1		= X座標(*1dot)
+		int y1		= Y座標(*1dot)
+		int chr_no	= キャラクタNo.(0-??)
+
+
+	◎スプライト表示
+
+		int	ssp_exec();
+		int	ssp_exec2();
+
+		通常は下のようにセットにして使います。
+
+		ssp_exec();vwait(1);ssp_exec2();
+
+		これで、スプライト表示、ウエイト、ページ切り替えをすべて
+		行ないます。
+
+
+	◎スプライト衝突判定
+
+		int	ssp_hit( int chk_no, int start_no, int end_no );
+
+		int chk_no	= 判定スプライトNo.
+		int start_no	= 判定開始No.
+		int end_no	= 判定終了No.
+
+		返り値		= 衝突したスプライトNo.
+				  ( -1 = 衝突なし )
+
+
+	◎スプライトキャラクタ画面PUT
+
+		void	ssp_putv( int xx, int yy, int data_adr, int data_seg );
+
+		int xx		= X座標 (*1dot)
+		int yy		= Y座標 (*1dot)
+		int data_adr	= キャラクタデータ・ベースアドレス
+		int data_seg	= キャラクタデータ・ベースセグメント
+
+
+	◎GDC周波数設定
+
+		int	gdc_clock( int clock );
+
+		int clock	= 設定する周波数( 0=2.5MHz / 1=5MHz )
+
+		返り値		= 以前まで設定されていた周波数
+
+
+	◎GDCグラフィック縦ライン数設定
+
+		void	gdc_ymul( int y_dot );
+
+		int y_dot	= 縦ライン数 ( 0=1dot / 1=2dot / 2=4dot .. )
+
+
+
+	/*-------------------------------------------------------------------
+		copyright
+	-------------------------------------------------------------------*/
+
+	'gmask.h','gmask.obj'			   (c)1994 onion software
+							special thanks to
+							    XKD laboratory.
+
+/*---------------------------------------------------------------------------
+	pc98 masked graphics system  "gmask.h" / 1994(c)onion software
+	Brief information of 'gmask.obj'
+---------------------------------------------------------------------------*/
+
+

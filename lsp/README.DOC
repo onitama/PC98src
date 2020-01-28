@@ -1,0 +1,37 @@
+
+　　LSP.LZH には次のようなファイルが入っています。
+　　ファイルのサイズと内容は以下の通りです。
+
+	LSP      EXE     56512 		; LSP本体
+	LSP      DOC      6770 		; LSPドキュメント
+	LSP      REF     29245 		; LSPプログラムマニュアル
+	SAMPLE   DS       4282 		; サンプルプログラム
+	TITLE    MAG      3979 		; サンプルプログラム用画像データ
+	MUSAMP1  MLO       911 		; サンプルプログラム用音楽データ１
+	MUSAMP2  MLO      1459 		; サンプルプログラム用音楽データ２
+	PACKDS   EXE     12975 		; LSP用ユーティリティー
+	PACKDS   DAT       594 		; PACKDS付属ファイル
+	PACKDS   DOC      2812 		; PACKDSドキュメント
+	INFO     DOC      3710		; お知らせドキュメント
+	README   DOC      1181		; このファイル
+
+	LSP.LZH				; Ver.Ax 94-07-07
+
+　　LSPについての解説は、LSP.DOCをお読みください。
+　　付属のサンプルプログラムは、
+
+		lsp sample.ds [return]
+
+　　と入力すると実行させることができます。
+　　要望、苦情などありましたら、こちらまで(^^)
+
+
+				address : 〒152 東京都目黒区洗足2-23-4-102
+							    onion software
+
+				e-mail  : 東京BBS        ( ONITAMA )
+					  セタネット     ( SCL70556 )
+					  Synergy BBS    ( ONITAMA )
+					  Troubadour NET ( ONITAMA )
+
+

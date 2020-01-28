@@ -1,0 +1,114 @@
+	;
+	;	test program for DSCP
+	;
+	;screen 1,0,1:mono:contrast 8,0			; ÇøÇÂÇ¡Ç∆ÉeÉXÉg
+	;aska "MERCURY"
+	;keywait
+	;end
+
+	screen 1,0,1:cls 2,10
+	contrast 16,0
+	bload "fafa.chr"
+	lput 0,0,32*8,96,0,4
+	lput 0,96,32*8,96,0,4
+	bload "hyaku.chr"
+	;
+	%0=0:repeat
+	lput 32*8,16*%0,32,16,4*%0,4
+	%0=%0+1:if %0<12:loop
+	keywait
+	;
+	bsave "g:zz.frm",0,$1f40
+	;
+	end
+
+
+	print "print test"
+	print
+	print "prm=",123
+	;
+*0
+	rnd %1,10
+	print "loop test /",%1
+	%0=%0+1:if %0>10 : goto *1
+	goto *0
+*1
+	?"ok"
+	;run "menu"
+	end
+
+	screen 1,0,1
+	music "casc01"
+	contrast 0,0
+	page 0,0
+	mag "bb"
+	mask
+	contrast 16,1
+	get 0,0,128,200,$1000
+	;put 200,100,128,200,$1000
+	;keywait
+	mag "mizki_cm"
+	lget 0,0,640,400,$1000
+	mplay
+	;wget	0,128,128
+	contrast 16,0
+	;put 0,0,128,200,$1000
+	cls 2
+	keywait
+	lput 0,0,640,400,$1000,15
+
+*2
+	;contrast 0,4
+	;palwait
+	;mcopy 1,50
+	;gcopy 0,0,0,639,199,0,0,200
+	;mcopy 1,29,16
+
+	keywait
+	contrast 0,0
+	end
+
+	width 1,1,160,100,80
+	contrast 16,1
+
+	wset	0,8,0,0
+	wset	1,2,$20,$40,0,384,384,32,128,128
+	;wenv	0,0,$6000
+	wgo	1,$10,$10,20,3,1
+	wmove
+	;wcheck	1
+
+	;color 14,3,1,0xa2
+	;gprt 0,100,"ÇîÇàÇÖÇèÇíÇôÇƒÇ…Ç®ÇÕçÑåí"
+	;color 14,1,2,0xa3
+	;gprt 0,116,"you have ended."
+	;gprt 0,132,"your body stopped to sigh."
+	;gprt 0,148,"to stay alive,No you fact."
+	;keywait
+	;contrast 0,4
+	;palwait
+	;
+	;qp "usu"
+	;anime 1,1
+	;pause
+	;anime 2,29
+	;anime 28,1
+	;
+	;page 0
+	;mag "mizki_cm"
+	;contrast 16,1
+	;palwait
+
+	;page 1
+	;aska "mercury"
+	;pause 100
+	;contrast 16
+	;scroll 0,400,2
+	;contrast 0,1
+	;palwait
+	;
+	;keywait
+	end
+
+
+
