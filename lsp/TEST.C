@@ -102,7 +102,7 @@ main( int argc,char *argv[] )
 	}
 
 	if (emode==0) {
-		printf("\x1B[36mlight SOUP processor\x1B[m Ver.Ax / copyright 1994(c) onion software\n");
+		printf("\x1B[36mlight SOUP processor\x1B[m Ver.Az / copyright 1994(c) onion software\n");
 		if (midien==-1) {
 			printf("内部の音楽演奏機能は使用しません。\n");
 			}
@@ -244,7 +244,7 @@ static dscp( char *fspec )
 	gs_cpy( bname,fspec );
 	gs_cut( bname,'.' );
 	gs_cat( bname,".DS" );
-	a=seg_load2( bname,prgbuf,0x800 );
+	a=seg_load2( bname,prgbuf,prgseg );
 		if (a!=0) { printf("No such file.\n");return -1; }
 
 	//	initalize default parameters
@@ -552,7 +552,7 @@ static cc_locate()
 	if (rstat!=0) return;
 
 	csrx=p1;csry=p2;csrgy=p2<<4;
-	//gotoxy(p1+1,p2+1);
+	gotoxy(p1+1,p2+1);			// for ver up.
 return; }
 
 
